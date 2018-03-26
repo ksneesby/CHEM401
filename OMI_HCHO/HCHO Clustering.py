@@ -8,10 +8,15 @@ import numpy as np
 # for plotting
 import matplotlib.pyplot as plt
 
+
+
+d0=datetime(2005,1,1)
+dN=datetime(2005,1,31)
+
+
 ## Read a single day and plot the data
 ##
 
-d0=datetime(2005,1,1)
 
 data,attr=rs.read_regridded_swath(d0)
 
@@ -62,7 +67,7 @@ print('test_plot.png saved')
 ### Now grab a bunch of days at once:
 
 
-dN=datetime(2005,2,28)
+
 
 data,attr=rs.read_regridded_swath(d0,dN)
 
@@ -99,6 +104,7 @@ plt.close()
 print('test_plot2.png saved')
 
 HCHO_std = np.nanstd(HCHO,axis=0)
+
 
 
 ###
