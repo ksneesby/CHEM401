@@ -270,25 +270,40 @@ def read_hdf5(filename):
 
     return retstruct, retattrs
 
-def read_regridded_swath(date,dateN=None):
+def read_regridded_swath(date,dateN=None, boundary=None):
     '''
         Read one to N days of regridded swaths and fires
+        can save ram by limiting to boundary region
+            boundary=[S,W,N,E] #-180 to 180 lons, -90 to 90 lats
+            currently this is not implemented - use read_key to save space for now
     '''
     # Reading One day only is easy:
     if dateN is None:
         filename=date.strftime('Data/omi_hcho_%Y%m%d.hdf')
+        # only read if the data file is there:
+        if not os.path.isfile(filename):
+            return None,None
         data,attr=read_hdf5(filename)
     # Reading many days is requires combining them:
     else:
+        
         data,attr = {},{}
         dats,atts  = [],[]
         days=list_days(date,dateN,False) # list of days
+        daysthere=[]
         # Read each day into a list
         for day in days:
             filename=day.strftime('Data/omi_hcho_%Y%m%d.hdf')
+            # only read if the data file is there:
+            if not os.path.isfile(filename):
+                continue
+            
+            
             dat,att=read_hdf5(filename)
             dats.append(dat)
             atts.append(att)
+            daysthere.append(day)
+                    
         # Combine list into array for each of the non dimensional data
         for k in dats[0].keys():
             data[k] = np.array([dats[j][k] for j in range(len(days))])
@@ -296,7 +311,7 @@ def read_regridded_swath(date,dateN=None):
             data[k]=dats[0][k]
         # assume all the attributes match:
         attr = atts[0]
-        data['time']=days
+        data['time']=daysthere
         attr['time']={'desc':'time dimension'}
     return data,attr
 
@@ -310,6 +325,10 @@ def read_key(date,dateN=None, key='VC_C', firethresh=-1, boundary=None):
     # Reading One day only is easy:
     if dateN is None:
         filename=date.strftime('Data/omi_hcho_%Y%m%d.hdf')
+        # only read if the data file is there:
+        if not os.path.isfile(filename):
+            return None,None,None,None
+        
         dat,att=read_hdf5(filename)
         data=dat[key]
         fires=dat['fires']
@@ -323,16 +342,20 @@ def read_key(date,dateN=None, key='VC_C', firethresh=-1, boundary=None):
         data=np.zeros([len(days),720,1152]) + np.NaN
         fires=np.zeros([len(days),720,1152]) + np.NaN
         # Read each day
+        flag=True #flag until the lats and lons are read in
         for i,day in enumerate(days):
             # read one day at a time, just store key
             dat,att=read_regridded_swath(day)
-            data[i,:,:]=dat[key]
-            fires[i,:,:]=dat['fires']
-            if firethresh > 0:
-                data[i,:,:][fires>firethresh] = np.NaN
-            if i==0:
-                lats=dat['lats']
-                lons=dat['lons']
+            # only add data if the data exists
+            if dat is not None:
+                data[i,:,:]=dat[key]
+                fires[i,:,:]=dat['fires']
+                if firethresh > 0:
+                    data[i,:,:][fires>firethresh] = np.NaN
+                if flag:
+                    lats=dat['lats']
+                    lons=dat['lons']
+                    flag=False 
         return data, fires, days, lats, lons
 
 
