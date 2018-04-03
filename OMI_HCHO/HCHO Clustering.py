@@ -69,18 +69,17 @@ print('test_plot.png saved')
 
 
 
-data,attr=rs.read_regridded_swath(d0,dN)
+data, fires, days, lats, lons=rs.read_key(d0,dN)
 
-print(data.keys()) # shows what keys are in our data structure
 
-print(data['VC_C'].shape) # shape of VC_C array
+print(data.shape) # shape of VC_C array
 
-print(attr['VC_C']) # attributes for VC_C
 
-HCHO=data['VC_C']
-fire=data['fires']
-lats=data['lats']
-lons=data['lons']
+
+HCHO=data
+fire=fires
+lats=lats
+lons=lons
 
 plt.figure(figsize=(10,12))
 
@@ -88,8 +87,8 @@ plt.figure(figsize=(10,12))
 
 # month avg 
 plt.subplot(311)
-HCHO_mean=np.nanmean(HCHO,axis=0)
-rs.plot_map(HCHO_mean,lats,lons,linear=False,
+HCHO_05_mean=np.nanmean(HCHO,axis=0)
+rs.plot_map(HCHO_05_mean,lats,lons,linear=False,
             vmin=1e14,vmax=1e16,cbarlabel='molec/cm2')
 plt.title('HCHO averaged over a month')
 
@@ -97,14 +96,50 @@ for i in range(4):
     plt.subplot(323+i)
     rs.plot_map(HCHO[i,:,:],lats,lons,linear=False,
             vmin=1e14,vmax=1e16,cbarlabel='molec/cm2')
-    plt.title(data['time'][i].strftime('OMI hcho %Y %m %d'))
+#    plt.title(data['time'][i].strftime('OMI hcho %Y %m %d'))
 
 plt.savefig('test_plot2.png')
 plt.close()
 print('test_plot2.png saved')
 
-HCHO_std = np.nanstd(HCHO,axis=0)
 
+
+
+## Get more years for mean
+
+d0=datetime(2006,1,1)
+dN=datetime(2006,1,31)
+data, fires, days, lats, lons=rs.read_key(d0,dN)
+HCHO_06=data
+HCHO_06_mean=np.nanmean(HCHO_06,axis=0)
+
+d0=datetime(2007,1,1)
+dN=datetime(2007,1,31)
+data, fires, days, lats, lons=rs.read_key(d0,dN)
+HCHO_07=data
+HCHO_07_mean=np.nanmean(HCHO_07,axis=0)
+
+d0=datetime(2008,1,1)
+dN=datetime(2008,1,31)
+data, fires, days, lats, lons=rs.read_key(d0,dN)
+HCHO_08=data
+HCHO_08_mean=np.nanmean(HCHO_08,axis=0)
+
+d0=datetime(2009,1,1)
+dN=datetime(2009,1,31)
+data, fires, days, lats, lons=rs.read_key(d0,dN)
+HCHO_09=data
+HCHO_09_mean=np.nanmean(HCHO_09,axis=0)
+
+d0=datetime(2010,1,1)
+dN=datetime(2010,1,31)
+data, fires, days, lats, lons=rs.read_key(d0,dN)
+HCHO_10=data
+HCHO_10_mean=np.nanmean(HCHO_10,axis=0)
+
+HCHO_mean = np.stack((HCHO_05_mean,HCHO_06_mean,HCHO_07_mean,HCHO_08_mean,HCHO_09_mean,HCHO_10_mean),axis=0)
+HCHO_std = np.nanstd(HCHO_mean,axis=0)
+HCHO_mean=np.nanmean(HCHO_mean,axis=0)
 
 
 ###
