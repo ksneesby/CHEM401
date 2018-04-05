@@ -15,12 +15,26 @@ import netCDF4
 
 ## Read in data
 
-ds = Dataset("Data/MODIS.LAIv.V5.generic.025x025.2005.nc")
+ds05 = Dataset("Data/MODIS.LAIv.V5.generic.025x025.2005.nc")
+ds06 = Dataset("Data/MODIS.LAIv.V5.generic.025x025.2006.nc")
+ds07 = Dataset("Data/MODIS.LAIv.V5.generic.025x025.2007.nc")
+ds08 = Dataset("Data/MODIS.LAIv.V5.generic.025x025.2008.nc")
+ds09 = Dataset("Data/MODIS.LAIv.V5.generic.025x025.2009.nc")
+ds10 = Dataset("Data/MODIS.LAIv.V5.generic.025x025.2010.nc")
+ds11 = Dataset("Data/MODIS.LAIv.V5.generic.025x025.2011.nc")
 
-lons = ds.variables['lon'][:]
-lats = ds.variables['lat'][:]
-time = ds.variables['time'][:]
-LAI = ds.variables['MODIS'][:]
+lons = ds05.variables['lon'][:]
+lats = ds05.variables['lat'][:]
+time = ds10.variables['time'][:]
+LAI = ds05.variables['MODIS'][:]
+
+print(ds)
+
+ds05.variables['MODIS'][:] = LAI[:11,:,:]
+
+print(ds05)
+
+print(LAI2[0,259,1220])
 
 meanCYA_df = df['CYA'].groupby([df['Lat'], df['Lon']]).mean().unstack()
 meanCOC_df = df['COC'].groupby([df['Lat'], df['Lon']]).mean().unstack()
