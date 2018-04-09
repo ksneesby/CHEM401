@@ -310,9 +310,9 @@ plt.close()
 print('test_plot4.png saved')
 
 
-
-######## Plot Elbow Curve
 # =============================================================================
+# 
+# ######## Plot Elbow Curve
 # 
 # from scipy.spatial.distance import cdist
 # 
@@ -340,9 +340,9 @@ print('test_plot4.png saved')
 # plt.show()
 # =============================================================================
 
-
-##### Silhouette Method
 # =============================================================================
+# 
+# ##### Silhouette Method
 # 
 # from sklearn.metrics import silhouette_samples, silhouette_score
 # import matplotlib.cm as cm
@@ -411,9 +411,22 @@ print('test_plot4.png saved')
 #     ax1.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
 # 
 #     # 2nd Plot showing the actual clusters formed
-#     colors = cm.spectral(cluster_labels.astype(float) / n_clusters)
-#     ax2.scatter(X[:, 0], X[:, 1], marker='.', s=30, lw=0, alpha=0.7,
-#                 c=colors, edgecolor='k')
+#     kmeans = KMeans(n_clusters=n_clusters)
+#     kmeans = kmeans.fit(X)
+#     labels = kmeans.predict(X)
+#     C = kmeans.cluster_centers_
+#     L = kmeans.labels_
+#                
+#     L = np.array(L, dtype=float)
+#     for i in range(len(to_delete)):
+#         if np.isfinite(to_delete[i]):
+#             L = np.insert(L,to_delete[i].astype(int),np.nan)
+#     L_reshape = np.reshape(L,(len(no_ocean_lats),len(no_ocean_lons)))
+#     L_reshape = L_reshape+1    
+# 
+#     rs.plot_map(L_reshape,no_ocean_lats,no_ocean_lons,linear=False,
+#                 vmin=1,vmax=n_clusters+1,cbarlabel='Cluster', cmap="tab10")
+# 
 # 
 #     # Labeling the clusters
 #     centers = clusterer.cluster_centers_

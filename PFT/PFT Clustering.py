@@ -238,11 +238,49 @@ X[:,17] = d[:,17]
 # W[:,0] = X[:,2]
 # =============================================================================
 
+# Use only highest value variable for each location
+
+max_values = np.full((len(X),1),np.nan)
+max_values = X[:,0:16].max(axis=1)
+W = np.full((len(max_values),3),np.nan)
+W[:,0] = df.iloc[:,0]
+W[:,1] = df.iloc[:,1]
+W[:,2] = max_values
+
+# Plot dominant species
+for i in range(len(max_values)):
+    W[i,2] = np.argwhere(X[i,:]==max_values[i])
+    
+W_lons = np.unique(X[:,1])
+W_lats = np.unique(X[:,0])
+W_data = np.full((len(W_lats),len(W_lons)), np.nan)
+
+
+for i in range(len(W)):
+    value_lon = W[i,1]
+    value_lat = W[i,0]
+    pos_lon = np.where( W_lons==value_lon )
+    pos_lat = np.where( W_lats==value_lat )
+    W_data[pos_lat,pos_lon] = W[i,2]
+
+W_data = W_data + 1
+
+rs.plot_map(W_data,W_lats,W_lons,linear=False,
+            vmin=1,vmax=17,cbarlabel='molec/cm2',cmap="tab20")
+
+plt.savefig('test_plot3.png')
+plt.close()
+print('test_plot3.png saved')
+
+
+W[:,0] = d[:,16]
+W[:,1] = d[:,17]
+
 from sklearn.cluster import KMeans
 
 kmeans = KMeans(n_clusters=6)
-kmeans = kmeans.fit(X)
-labels = kmeans.predict(df)
+kmeans = kmeans.fit(W)
+labels = kmeans.predict(W)
 C = kmeans.cluster_centers_
 L = kmeans.labels_
 # =============================================================================
@@ -273,9 +311,9 @@ print('test_plot4.png saved')
 
 
 
-
-######## Plot Elbow Curve
 # =============================================================================
+# 
+# ######## Plot Elbow Curve
 # 
 # from scipy.spatial.distance import cdist
 # 
@@ -303,9 +341,9 @@ print('test_plot4.png saved')
 # plt.show()
 # =============================================================================
 
-
-##### Silhouette Method
 # =============================================================================
+# 
+# ##### Silhouette Method
 # 
 # from sklearn.metrics import silhouette_samples, silhouette_score
 # import matplotlib.cm as cm
@@ -374,9 +412,22 @@ print('test_plot4.png saved')
 #     ax1.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
 # 
 #     # 2nd Plot showing the actual clusters formed
-#     colors = cm.spectral(cluster_labels.astype(float) / n_clusters)
-#     ax2.scatter(X[:, 0], X[:, 1], marker='.', s=30, lw=0, alpha=0.7,
-#                 c=colors, edgecolor='k')
+#     
+#     kmeans = KMeans(n_clusters=n_clusters)
+#     kmeans = kmeans.fit(X)
+#     labels = kmeans.predict(X)
+#     C = kmeans.cluster_centers_
+#     L = kmeans.labels_
+#                
+#     L = np.array(L, dtype=float)
+#     for i in range(len(to_delete)):
+#         if np.isfinite(to_delete[i]):
+#             L = np.insert(L,to_delete[i].astype(int),np.nan)
+#     L_reshape = np.reshape(L,(len(no_ocean_lats),len(no_ocean_lons)))
+#     L_reshape = L_reshape+1    
+# 
+#     rs.plot_map(L_reshape,no_ocean_lats,no_ocean_lons,linear=False,
+#                 vmin=1,vmax=n_clusters+1,cbarlabel='Cluster', cmap="tab10")
 # 
 #     # Labeling the clusters
 #     centers = clusterer.cluster_centers_
