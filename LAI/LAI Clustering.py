@@ -15,6 +15,10 @@ import netCDF4
 
 ## Read in data
 
+# Month as number i.e. January = 1
+
+month = 1
+
 ds05 = Dataset("Data/MODIS.LAIv.V5.generic.025x025.2005.nc")
 ds06 = Dataset("Data/MODIS.LAIv.V5.generic.025x025.2006.nc")
 ds07 = Dataset("Data/MODIS.LAIv.V5.generic.025x025.2007.nc")
@@ -28,42 +32,24 @@ lats = ds05.variables['lat'][:]
 time = ds10.variables['time'][:]
 LAI = ds05.variables['MODIS'][:]
 
-print(ds)
+ds05 = LAI[month-1,:,:]
+LAI = ds06.variables['MODIS'][:]
+ds06 = LAI[month-1,:,:]
+LAI = ds07.variables['MODIS'][:]
+ds07 = LAI[month-1,:,:]
+LAI = ds08.variables['MODIS'][:]
+ds08 = LAI[month-1,:,:]
+LAI = ds09.variables['MODIS'][:]
+ds09 = LAI[month-1,:,:]
+LAI = ds10.variables['MODIS'][:]
+ds10 = LAI[month-1,:,:]
+LAI = ds11.variables['MODIS'][:]
+ds11 = LAI[month-1,:,:]
 
-ds05.variables['MODIS'][:] = LAI[:11,:,:]
-
-print(ds05)
-
-print(LAI2[0,259,1220])
-
-meanCYA_df = df['CYA'].groupby([df['Lat'], df['Lon']]).mean().unstack()
-meanCOC_df = df['COC'].groupby([df['Lat'], df['Lon']]).mean().unstack()
-meanDIA_df = df['DIA'].groupby([df['Lat'], df['Lon']]).mean().unstack()
-
-lon = np.array(df.drop_duplicates(subset='Lon')['Lon'])
-lat = np.array(df.drop_duplicates(subset='Lat')['Lat'])
-data = meanCYA_df
-
-
-# month avg 
-plt.subplot(311)
-HCHO_mean=np.nanmean(HCHO,axis=0)
-rs.plot_map(HCHO_mean,lats,lons,linear=False,
-            vmin=1e14,vmax=1e16,cbarlabel='molec/cm2')
-plt.title('HCHO averaged over a month')
-
-for i in range(4):
-    plt.subplot(323+i)
-    rs.plot_map(HCHO[i,:,:],lats,lons,linear=False,
-            vmin=1e14,vmax=1e16,cbarlabel='molec/cm2')
-    plt.title(data['time'][i].strftime('OMI hcho %Y %m %d'))
-
-plt.savefig('test_plot2.png')
-plt.close()
-print('test_plot2.png saved')
-
-HCHO_std = np.nanstd(HCHO,axis=0)
-
+LAI_mean = np.stack((ds05,ds06,ds07,ds08,ds09,ds10, ds11),axis=0)
+LAI_std = np.nanstd(LAI_mean,axis=0)
+LAI_mean=np.nanmean(LAI_mean,axis=0)
+ 
 
 ###
 ### Limit HCHO_mean to just Australian region data ~ S W N E ~ [-45, 108.75, -10, 156.25]
@@ -80,14 +66,14 @@ for i in range (len(lons)):
     if lons[i] <= 156.25:
         lons_max = i
 
-HCHO_mean_Aus = HCHO_mean[lats_min:lats_max,lons_min:lons_max]
+LAI_mean_Aus = LAI_mean[lats_min:lats_max,lons_min:lons_max]
 Aus_lats = lats[lats_min:lats_max]
 Aus_lons = lons[lons_min:lons_max]
-HCHO_std_Aus = HCHO_std[lats_min:lats_max,lons_min:lons_max]
+LAI_std_Aus = LAI_std[lats_min:lats_max,lons_min:lons_max]
 
 
-Aus_reshape = np.reshape(HCHO_mean_Aus,(len(HCHO_mean_Aus)*len(HCHO_mean_Aus[0])))
-std_reshape = np.reshape(HCHO_std_Aus,(len(HCHO_std_Aus)*len(HCHO_std_Aus[0])))
+Aus_reshape = np.reshape(LAI_mean_Aus,(len(LAI_mean_Aus)*len(LAI_mean_Aus[0])))
+std_reshape = np.reshape(LAI_std_Aus,(len(LAI_std_Aus)*len(LAI_std_Aus[0])))
 Aus_lats_reshape = np.repeat(Aus_lats, len(Aus_lons))
 Aus_lons_reshape = np.tile(Aus_lons, len(Aus_lats))
 X = np.full((len(Aus_reshape),4), np.nan) 
@@ -128,7 +114,7 @@ for i in reversed(range(len(result))):
 
 no_ocean_lons = np.unique(X[:,2])
 no_ocean_lats = np.unique(X[:,3])
-no_ocean_HCHO = np.full((len(no_ocean_lats),len(no_ocean_lons)), np.nan)
+no_ocean_LAI = np.full((len(no_ocean_lats),len(no_ocean_lons)), np.nan)
 no_ocean_std = np.full((len(no_ocean_lats),len(no_ocean_lons)), np.nan)
 
 for i in range(len(X)):
@@ -136,11 +122,11 @@ for i in range(len(X)):
     value_lat = X[i,3]
     pos_lon = np.where( no_ocean_lons==value_lon )
     pos_lat = np.where( no_ocean_lats==value_lat )
-    no_ocean_HCHO[pos_lat,pos_lon] = X[i,0]
+    no_ocean_LAI[pos_lat,pos_lon] = X[i,0]
     no_ocean_std[pos_lat,pos_lon] = X[i,1]
     
-rs.plot_map(no_ocean_HCHO,no_ocean_lats,no_ocean_lons,linear=False,
-            vmin=1e14,vmax=1e16,cbarlabel='molec/cm2')
+rs.plot_map(LAI_mean,lats,lons,linear=True,
+            vmin=0,vmax=2,cbarlabel='Cluster', cmap="viridis")
 
 plt.savefig('test_plot3.png')
 plt.close()
@@ -163,7 +149,7 @@ print('test_plot3.png saved')
 #     ax.view_init(90, angle)
 # =============================================================================
 
-Aus_reshape = np.reshape(no_ocean_HCHO,(len(no_ocean_HCHO)*len(no_ocean_HCHO[0])))
+Aus_reshape = np.reshape(no_ocean_LAI,(len(no_ocean_LAI)*len(no_ocean_LAI[0])))
 std_reshape = np.reshape(no_ocean_std,(len(no_ocean_std)*len(no_ocean_std[0])))
 Aus_lats_reshape = np.repeat(no_ocean_lats, len(no_ocean_lons))
 Aus_lons_reshape = np.tile(no_ocean_lons, len(no_ocean_lats))
@@ -189,9 +175,21 @@ for i in reversed(range(len(X))):
     if np.isfinite(to_delete[i]):
         X = np.delete(X,to_delete[i],0)
 
+
+## Normalise data
+
+from sklearn import preprocessing
+
+X = preprocessing.RobustScaler().fit_transform(X)
+
+
+## Clustering
+
 from sklearn.cluster import KMeans
 
-kmeans = KMeans(n_clusters=6)
+n_clusters = 3
+
+kmeans = KMeans(n_clusters=n_clusters)
 kmeans = kmeans.fit(X)
 labels = kmeans.predict(X)
 C = kmeans.cluster_centers_
@@ -208,18 +206,18 @@ for i in range(len(to_delete)):
     if np.isfinite(to_delete[i]):
         L = np.insert(L,to_delete[i].astype(int),np.nan)
 L_reshape = np.reshape(L,(len(no_ocean_lats),len(no_ocean_lons)))
-L_reshape = L_reshape+1           
+         
 
-rs.plot_map(L_reshape,no_ocean_lats,no_ocean_lons,linear=False,
-            vmin=1,vmax=7,cbarlabel='Cluster', cmap="tab10")
+rs.plot_map(L_reshape,no_ocean_lats,no_ocean_lons,linear=True,
+            vmin=0,vmax=n_clusters,cbarlabel='Cluster', cmap="tab10")
 plt.savefig('test_plot4.png')
 plt.close()
 print('test_plot4.png saved')
 
 
-
-######## Plot Elbow Curve
 # =============================================================================
+# 
+# ######## Plot Elbow Curve
 # 
 # from scipy.spatial.distance import cdist
 # 
@@ -247,9 +245,9 @@ print('test_plot4.png saved')
 # plt.show()
 # =============================================================================
 
-
-##### Silhouette Method
 # =============================================================================
+# 
+# ##### Silhouette Method
 # 
 # from sklearn.metrics import silhouette_samples, silhouette_score
 # import matplotlib.cm as cm
@@ -318,9 +316,22 @@ print('test_plot4.png saved')
 #     ax1.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
 # 
 #     # 2nd Plot showing the actual clusters formed
-#     colors = cm.spectral(cluster_labels.astype(float) / n_clusters)
-#     ax2.scatter(X[:, 0], X[:, 1], marker='.', s=30, lw=0, alpha=0.7,
-#                 c=colors, edgecolor='k')
+#     
+#     kmeans = KMeans(n_clusters=n_clusters)
+#     kmeans = kmeans.fit(X)
+#     labels = kmeans.predict(X)
+#     C = kmeans.cluster_centers_
+#     L = kmeans.labels_
+#                
+#     L = np.array(L, dtype=float)
+#     for i in range(len(to_delete)):
+#         if np.isfinite(to_delete[i]):
+#             L = np.insert(L,to_delete[i].astype(int),np.nan)
+#     L_reshape = np.reshape(L,(len(no_ocean_lats),len(no_ocean_lons)))
+# 
+# 
+#     rs.plot_map(L_reshape,no_ocean_lats,no_ocean_lons,linear=True,
+#                 vmin=0,vmax=n_clusters,cbarlabel='Cluster', cmap="tab10")
 # 
 #     # Labeling the clusters
 #     centers = clusterer.cluster_centers_

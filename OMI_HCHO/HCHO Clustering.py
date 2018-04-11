@@ -301,10 +301,10 @@ for i in range(len(to_delete)):
     if np.isfinite(to_delete[i]):
         L = np.insert(L,to_delete[i].astype(int),np.nan)
 L_reshape = np.reshape(L,(len(no_ocean_lats),len(no_ocean_lons)))
-L_reshape = L_reshape+1           
+      
 
-rs.plot_map(L_reshape,no_ocean_lats,no_ocean_lons,linear=False,
-            vmin=1,vmax=7,cbarlabel='Cluster', cmap="tab10")
+rs.plot_map(L_reshape,no_ocean_lats,no_ocean_lons,linear=True,
+            vmin=0,vmax=7,cbarlabel='Cluster', cmap="tab10")
 plt.savefig('test_plot4.png')
 plt.close()
 print('test_plot4.png saved')

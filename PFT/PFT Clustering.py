@@ -263,10 +263,10 @@ for i in range(len(W)):
     pos_lat = np.where( W_lats==value_lat )
     W_data[pos_lat,pos_lon] = W[i,2]
 
-W_data = W_data + 1
 
-rs.plot_map(W_data,W_lats,W_lons,linear=False,
-            vmin=1,vmax=17,cbarlabel='molec/cm2',cmap="tab20")
+
+rs.plot_map(W_data,W_lats,W_lons,linear=True,
+            vmin=0,vmax=1,cbarlabel='molec/cm2',cmap="viridis")
 
 plt.savefig('test_plot3.png')
 plt.close()
@@ -278,9 +278,9 @@ W[:,1] = d[:,17]
 
 from sklearn.cluster import KMeans
 
-kmeans = KMeans(n_clusters=6)
-kmeans = kmeans.fit(W)
-labels = kmeans.predict(W)
+kmeans = KMeans(n_clusters=5)
+kmeans = kmeans.fit(X)
+labels = kmeans.predict(X)
 C = kmeans.cluster_centers_
 L = kmeans.labels_
 # =============================================================================
@@ -299,8 +299,8 @@ L_reshape = L_reshape+1
 
 
 
-rs.plot_map(L_reshape,no_ocean_lats,no_ocean_lons,linear=False,
-            vmin=1,vmax=7,cbarlabel='Cluster', cmap="tab10")
+rs.plot_map(L_reshape,no_ocean_lats,no_ocean_lons,linear=True,
+            vmin=0,vmax=5,cbarlabel='Cluster', cmap="tab10")
 plt.savefig('test_plot4.png')
 plt.close()
 print('test_plot4.png saved')
